@@ -1,9 +1,0 @@
-prefix=/builder/shared-workdir/build/staging_dir/host
-includedir=${prefix}/include
-libdir=${prefix}/lib
-
-Name: uuid
-Description: Universally unique id library
-Version: 2.41.3
-Libs: -L${libdir} -luuid -pthread
-Cflags: -I${includedir}/uuid -pthread
