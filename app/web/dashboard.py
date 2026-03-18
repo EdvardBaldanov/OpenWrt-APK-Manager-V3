@@ -39,10 +39,23 @@ def requires_auth(f):
         return f(*args, **kwargs)
     return decorated
 
+def get_server_ip():
+    """Пытается определить локальный IP адрес сервера."""
+    import socket
+    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    try:
+        s.connect(('8.8.8.8', 1))
+        ip = s.getsockname()[0]
+    except Exception:
+        ip = "127.0.0.1"
+    finally:
+        s.close()
+    return ip
+
 @app.route('/')
 @requires_auth
 def index():
-    return render_template('index.html')
+    return render_template('index.html', server_ip=get_server_ip())
 
 @app.route('/packages/<path:filename>')
 @app.route('/<path:filename>')
