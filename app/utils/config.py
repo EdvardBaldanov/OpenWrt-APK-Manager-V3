@@ -10,6 +10,8 @@ def load_json(path):
     if not path.exists():
         return {}
     try:
+        if not path.exists() or path.stat().st_size == 0:
+            return {}
         with open(path, 'r', encoding='utf-8') as f:
             return json.load(f)
     except Exception as e:
@@ -58,17 +60,30 @@ def get_packages_arch():
     return filters.get("packages_arch", ["all"])
 
 def ensure_default_configs():
-    """Создает файлы конфигурации с настройками по умолчанию, если они отсутствуют."""
+    """Создает файлы конфигурации с настройками по умолчанию или мигрирует из старого config.json."""
+    # 1. Сначала проверяем старый конфиг для миграции
+    old_config_path = paths.DATA_DIR / "config.json"
+    old_data = load_json(old_config_path) if old_config_path.exists() else {}
+    
     defaults = {
-        paths.AUTH_JSON: {"github_token": ""},
-        paths.WEB_AUTH_JSON: {"admin": "admin"},
-        paths.REPOS_JSON: [],
-        paths.FILTERS_JSON: {"packages_arch": ["all"], "update_interval_hours": 12}
+        paths.AUTH_JSON: {
+            "github_token": old_data.get("github_token", "")
+        },
+        paths.WEB_AUTH_JSON: {
+            "username": "admin", 
+            "password": "admin"
+        },
+        paths.REPOS_JSON: old_data.get("github_tracking", []),
+        paths.FILTERS_JSON: {
+            "packages_arch": old_data.get("packages_arch", ["all"]), 
+            "update_interval_hours": old_data.get("update_interval_hours", 12)
+        }
     }
+    
     for path, data in defaults.items():
-        if not path.exists():
+        if not path.exists() or path.stat().st_size == 0:
             save_json(path, data)
-            logger.info(f"Создан конфигурационный файл по умолчанию: {path.name}")
+            logger.info(f"Инициализирован конфигурационный файл: {path.name}")
 
 if __name__ == "__main__":
     ensure_default_configs()

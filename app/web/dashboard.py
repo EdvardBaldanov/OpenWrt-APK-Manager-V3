@@ -68,13 +68,12 @@ def handle_config():
             config.save_json(paths.REPOS_JSON, data['github_tracking'])
             
         # 3. Filters & Interval (filters.json)
-        filters = {}
-        if 'packages_arch' in data:
-            filters['packages_arch'] = data['packages_arch']
-        if 'update_interval_hours' in data:
-            filters['update_interval_hours'] = data['update_interval_hours']
-        
-        if filters:
+        if 'packages_arch' in data or 'update_interval_hours' in data:
+            filters = config.load_json(paths.FILTERS_JSON)
+            if 'packages_arch' in data:
+                filters['packages_arch'] = data['packages_arch']
+            if 'update_interval_hours' in data:
+                filters['update_interval_hours'] = data['update_interval_hours']
             config.save_json(paths.FILTERS_JSON, filters)
             
         return jsonify({"status": "success"})
