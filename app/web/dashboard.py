@@ -15,7 +15,13 @@ app = Flask(__name__)
 def check_auth(username, password):
     """Проверяет соответствие логина и пароля."""
     auth_data = config.get_web_auth()
-    return username == auth_data.get('username') and password == auth_data.get('password')
+    # 1. Новый формат: {"username": "...", "password": "..."}
+    if 'username' in auth_data and 'password' in auth_data:
+        return username == auth_data['username'] and password == auth_data['password']
+    # 2. Старый формат: {"admin": "admin", "password": "..."} (где ключ - это имя пользователя)
+    if username in auth_data:
+        return password == auth_data[username] or password == auth_data.get('password')
+    return False
 
 def authenticate():
     """Отправляет 401 ответ, вызывающий окно ввода пароля."""
