@@ -267,18 +267,16 @@
         <h1>APK v3 Manager</h1>
         <p class="subtitle">Управление автономным репозиторием OpenWrt следующего поколения</p>
 
-        <div class="card" style="margin-bottom: 24px; background: rgba(56, 189, 248, 0.05); border-color: rgba(56, 189, 248, 0.2);">
-            <div style="display: flex; gap: 24px; align-items: flex-start;">
-                <div style="flex: 1;">
-                    <h4 style="margin: 0 0 8px 0; color: var(--accent-color);">🔧 Подключение к роутеру</h4>
-                    <p style="margin: 0; font-size: 0.85rem; color: var(--secondary-text);">Выполните эти команды на роутере с OpenWrt 25.12+:</p>
-                </div>
-                <pre style="flex: 2; margin: 0; background: rgba(0,0,0,0.3); padding: 12px; border-radius: 8px; font-size: 0.8rem; line-height: 1.4; border: 1px solid rgba(255,255,255,0.05);"># Добавить репозиторий
+        <div class="card" style="margin-bottom: 32px; background: rgba(56, 189, 248, 0.05); border-color: rgba(56, 189, 248, 0.2);">
+            <h4 style="margin: 0 0 12px 0; color: var(--accent-color); font-size: 1.1rem; display: flex; align-items: center; gap: 8px;">
+                <span>🔧</span> Подключение к роутеру
+            </h4>
+            <p style="margin: 0 0 16px 0; font-size: 0.9rem; color: var(--secondary-text);">Выполните эти команды на роутере с OpenWrt 24.10 / 25.12+:</p>
+            <pre style="margin: 0; background: rgba(0,0,0,0.4); padding: 16px; border-radius: 10px; font-size: 0.85rem; line-height: 1.6; border: 1px solid rgba(255,255,255,0.1); color: #cbd5e1; overflow-x: auto;"># Добавить репозиторий
 echo "repository http://&lt;IP&gt;:8080/packages" >> /etc/apk/repositories
 
 # Добавить публичный ключ
 wget http://&lt;IP&gt;:8080/public.pem -O /etc/apk/keys/repo-manager.pem</pre>
-            </div>
         </div>
 
         <div class="tabs">
@@ -607,13 +605,30 @@ wget http://&lt;IP&gt;:8080/public.pem -O /etc/apk/keys/repo-manager.pem</pre>
             }
         }
 
-        loadPackages();
-        loadStats();
-        loadConfig();
-        
-        // Постоянный опрос логов
-        pollLogs();
-        setInterval(pollLogs, 3000);
+        // Автоматическая подстановка IP в инструкции подключения
+        function updateInstructions() {
+            const host = window.location.host;
+            const preBlocks = document.querySelectorAll('.card pre');
+            preBlocks.forEach(pre => {
+                if (pre.innerHTML.includes('&lt;IP&gt;:8080')) {
+                    pre.innerHTML = pre.innerHTML.replace(/&lt;IP&gt;:8080/g, host);
+                }
+            });
+        }
+
+        function startLogPolling() {
+            pollLogs();
+            setInterval(pollLogs, 3000);
+        }
+
+        // Загрузка данных при старте
+        window.addEventListener('DOMContentLoaded', () => {
+            loadStats();
+            loadConfig();
+            loadPackages();
+            startLogPolling();
+            updateInstructions();
+        });
     </script>
 </body>
 </html>
