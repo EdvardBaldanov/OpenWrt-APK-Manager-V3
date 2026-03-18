@@ -1,0 +1,26 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+env/
+venv/
+.env
+
+# Application Data (Sensitive & Local)
+data/*
+!data/config_template.json
+!data/keys/
+data/keys/*
+!data/keys/public.pem
+
+# Local Tools
+bin/
+!bin/.gitkeep
+
+# IDEs
+.vscode/
+.idea/
+
+# OS
+.DS_Store

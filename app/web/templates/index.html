@@ -1,0 +1,619 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OpenWrt APK v3 Manager</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&family=Montserrat:wght@500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #0f172a;
+            --card-bg: #1e293b;
+            --accent-color: #38bdf8;
+            --text-color: #f8fafc;
+            --secondary-text: #94a3b8;
+            --success-color: #10b981;
+            --danger-color: #f43f5e;
+            --glass: rgba(30, 41, 59, 0.7);
+        }
+
+        body {
+            font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            width: 90%;
+            max-width: 1000px;
+            background: var(--glass);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 24px;
+            padding: 40px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            animation: fadeIn 0.8s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        h1, h2, h3 {
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 700;
+            margin-bottom: 8px;
+            background: linear-gradient(90deg, #38bdf8, #818cf8);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        /* Tabs Styling */
+        .tabs {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 32px;
+            padding: 4px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 16px;
+            width: fit-content;
+        }
+
+        .tab-btn {
+            padding: 12px 24px;
+            background: none;
+            border: none;
+            color: var(--secondary-text);
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 600;
+            cursor: pointer;
+            border-radius: 12px;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .tab-btn:hover {
+            color: var(--text-color);
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .tab-btn.active {
+            background: var(--accent-color);
+            color: white;
+            box-shadow: 0 4px 12px rgba(56, 189, 248, 0.3);
+        }
+
+        .tab-content {
+            display: none;
+            animation: slideUp 0.4s ease-out;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .subtitle {
+            color: var(--secondary-text);
+            margin-bottom: 32px;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 24px;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border-radius: 16px;
+            padding: 24px;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            border: 1px solid transparent;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+            border-color: var(--accent-color);
+        }
+
+        .btn {
+            background: var(--accent-color);
+            color: var(--bg-color);
+            border: none;
+            padding: 12px 24px;
+            border-radius: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: opacity 0.2s;
+            margin-top: 16px;
+        }
+
+        .btn:hover {
+            opacity: 0.9;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            background: rgba(56, 189, 248, 0.1);
+            color: var(--accent-color);
+            margin-bottom: 12px;
+        }
+
+        pre {
+            background: #000;
+            padding: 16px;
+            border-radius: 12px;
+            font-size: 0.9rem;
+            color: #d1d5db;
+            overflow-x: auto;
+        }
+
+        .stat-card {
+            padding: 20px !important;
+            text-align: center;
+        }
+        .stat-label {
+            color: var(--secondary-text);
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            margin-bottom: 8px;
+        }
+        .stat-value {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--accent-color);
+        }
+
+        .input-group label {
+            display: block;
+            color: var(--secondary-text);
+            font-size: 0.8rem;
+            margin-bottom: 6px;
+            text-transform: uppercase;
+        }
+        input {
+            width: 100%;
+            padding: 12px;
+            background: rgba(0,0,0,0.3);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 8px;
+            color: #fff;
+            box-sizing: border-box;
+            outline: none;
+        }
+        input:focus {
+            border-color: var(--accent-color);
+        }
+        .repo-row {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 8px;
+            align-items: center;
+        }
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.8);
+            backdrop-filter: blur(8px);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        .modal-content {
+            background: var(--card-bg);
+            border-radius: 20px;
+            padding: 32px;
+            width: 80%;
+            max-width: 800px;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .table-container {
+            margin-top: 16px;
+            overflow-x: auto;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+        }
+        th, td {
+            padding: 12px;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+        th {
+            color: var(--secondary-text);
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        td a {
+            color: var(--accent-color);
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+        td a:hover {
+            color: #818cf8;
+        }
+        tr:hover td {
+            background: rgba(255,255,255,0.02);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="status-badge">Система Активна</div>
+        <h1>APK v3 Manager</h1>
+        <p class="subtitle">Управление автономным репозиторием OpenWrt следующего поколения</p>
+
+        <div class="card" style="margin-bottom: 24px; background: rgba(56, 189, 248, 0.05); border-color: rgba(56, 189, 248, 0.2);">
+            <div style="display: flex; gap: 24px; align-items: flex-start;">
+                <div style="flex: 1;">
+                    <h4 style="margin: 0 0 8px 0; color: var(--accent-color);">🔧 Подключение к роутеру</h4>
+                    <p style="margin: 0; font-size: 0.85rem; color: var(--secondary-text);">Выполните эти команды на роутере с OpenWrt 25.12+:</p>
+                </div>
+                <pre style="flex: 2; margin: 0; background: rgba(0,0,0,0.3); padding: 12px; border-radius: 8px; font-size: 0.8rem; line-height: 1.4; border: 1px solid rgba(255,255,255,0.05);"># Добавить репозиторий
+echo "repository http://&lt;IP&gt;:8080/packages" >> /etc/apk/repositories
+
+# Добавить публичный ключ
+wget http://&lt;IP&gt;:8080/public.pem -O /etc/apk/keys/repo-manager.pem</pre>
+            </div>
+        </div>
+
+        <div class="tabs">
+            <button class="tab-btn active" onclick="switchTab('overview')">🏠 Обзор</button>
+            <button class="tab-btn" onclick="switchTab('packages')">📦 Пакеты</button>
+            <button class="tab-btn" onclick="switchTab('repos')">🛰️ Источники</button>
+            <button class="tab-btn" onclick="switchTab('settings')">⚙️ Настройки</button>
+        </div>
+
+        <!-- Tab: Overview -->
+        <div id="overview" class="tab-content active">
+            <div class="stats-row" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; margin-bottom: 32px;">
+                <div class="card stat-card">
+                    <div class="stat-label">Пакетов</div>
+                    <div class="stat-value" id="stat-count">-</div>
+                </div>
+                <div class="card stat-card">
+                    <div class="stat-label">Общий объем</div>
+                    <div class="stat-value" id="stat-size">-</div>
+                </div>
+                <div class="card stat-card">
+                    <div class="stat-label">Обновлено</div>
+                    <div class="stat-value" id="stat-update">-</div>
+                </div>
+            </div>
+
+            <div class="grid">
+                <div class="card" style="grid-column: span 2;">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <div>
+                            <h3 style="margin: 0;">🚀 Обновить репозиторий</h3>
+                            <p style="margin: 8px 0 0 0; color: var(--secondary-text);">Полный цикл: скачивание новых пакетов и пересборка индекса.</p>
+                            <div id="active-repos-list" style="margin: 12px 0; display: flex; flex-wrap: wrap; gap: 8px;"></div>
+                        </div>
+                        <button class="btn" style="margin: 0; padding: 16px 32px; font-size: 1.1rem; background: linear-gradient(135deg, var(--accent-color), #818cf8); color: white;" onclick="runUpdate()">Обновить всё</button>
+                    </div>
+                </div>
+
+                <div class="card" style="grid-column: span 2;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                        <h3 style="margin: 0;">📜 Логи системы</h3>
+                        <button class="btn" style="margin: 0; padding: 6px 12px; font-size: 0.8rem;" onclick="loadLogs()">Обновить сейчас</button>
+                    </div>
+                    <pre id="persistent-logs" style="height: 300px; margin: 0; background: rgba(0,0,0,0.3); padding: 12px; border-radius: 8px; font-size: 0.85rem; overflow-y: auto; color: #a1a1aa; border: 1px solid rgba(255,255,255,0.05);"></pre>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab: Packages -->
+        <div id="packages" class="tab-content">
+            <div class="card file-browser">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                    <h3 style="margin: 0;">📂 Менеджер пакетов</h3>
+                    <input type="text" id="pkg-search" placeholder="Поиск по названию..." style="width: 300px; padding: 10px 16px;" oninput="filterPackages()">
+                </div>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Имя файла</th>
+                                <th>Размер</th>
+                                <th>Дата изменения</th>
+                            </tr>
+                        </thead>
+                        <tbody id="package-list">
+                            <tr><td colspan="3">Загрузка...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab: Repositories -->
+        <div id="repos" class="tab-content">
+            <div class="card">
+                <h3>🛰️ Управление источниками</h3>
+                <p style="color: var(--secondary-text);">Репозитории GitHub для отслеживания обновлений.</p>
+                <div id="repo-list-editor" style="margin: 20px 0;"></div>
+                <div class="input-group" style="display: flex; gap: 12px; background: rgba(0,0,0,0.2); padding: 16px; border-radius: 12px;">
+                    <input type="text" id="new-repo-name" placeholder="отшельник/проект" style="flex: 1;">
+                    <input type="text" id="new-repo-arch" placeholder="архитект." style="width: 120px;">
+                    <button class="btn" style="margin: 0; padding: 0 24px;" onclick="addRepoRow()">Добавить</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab: Settings -->
+        <div id="settings" class="tab-content">
+            <div class="grid">
+                <div class="card">
+                    <h3>⚙️ Настройки сервера</h3>
+                    <div class="settings-grid" style="display: grid; grid-template-columns: 1fr; gap: 16px; margin-top: 16px;">
+                        <div class="input-group">
+                            <label>GitHub Personal Access Token</label>
+                            <input type="password" id="cfg-token" placeholder="github_pat_...">
+                        </div>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                            <div class="input-group">
+                                <label>Интервал (часы)</label>
+                                <input type="number" id="cfg-interval" value="6">
+                            </div>
+                            <div class="input-group">
+                                <label>Архитектуры</label>
+                                <input type="text" id="cfg-arch" placeholder="all, x86_64">
+                            </div>
+                        </div>
+                    </div>
+                    <button class="btn" style="background: var(--success-color); width: 100%; margin-top: 20px;" onclick="saveConfig()">Сохранить всё</button>
+                </div>
+
+            </div>
+        </div>
+        </div>
+
+    </div>
+
+    <!-- Modal for Logs/Details -->
+    <div id="modal" class="modal-overlay" onclick="closeModal(event)">
+        <div class="modal-content" onclick="event.stopPropagation()">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                <h2 id="modal-title" style="margin: 0; font-family: 'Outfit';">Логи синхронизации</h2>
+                <button class="btn" style="margin: 0; background: none; color: var(--secondary-text); font-size: 1.5rem;" onclick="closeModal()">×</button>
+            </div>
+            <pre id="modal-body" style="height: 400px; margin: 0;"></pre>
+        </div>
+    </div>
+
+
+    <script>
+        let currentTracking = [];
+
+        function switchTab(tabId) {
+            // Убираем активный класс у кнопок и контента
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            
+            // Добавляем активный класс выбранным
+            event.currentTarget.classList.add('active');
+            document.getElementById(tabId).classList.add('active');
+            
+            // Если перешли на вкладку файлов, обновим список
+            if (tabId === 'packages') loadPackages();
+        }
+
+        async function loadConfig() {
+            const response = await fetch('/api/config');
+            const data = await response.json();
+            document.getElementById('cfg-token').value = data.github_token || '';
+            document.getElementById('cfg-interval').value = data.update_interval_hours || 6;
+            document.getElementById('cfg-arch').value = (data.packages_arch || []).join(', ');
+            
+            // Load repos
+            const reposResponse = await fetch('/api/config'); // We use same endpoint as it combines data
+            // But wait, my get_tracking_list returns just repos. Let's use separate API if needed or rely on combined load_config
+            currentTracking = data.github_tracking || [];
+            renderRepos();
+        }
+
+        function renderRepos() {
+            const container = document.getElementById('repo-list-editor');
+            const activeList = document.getElementById('active-repos-list');
+            container.innerHTML = '';
+            activeList.innerHTML = '';
+
+            currentTracking.forEach((item, index) => {
+                // Editor Row
+                const row = document.createElement('div');
+                row.className = 'repo-row';
+                row.innerHTML = `
+                    <input type="text" value="${item.repo}" onchange="updateRepo(${index}, 'repo', this.value)">
+                    <input type="text" value="${item.arch}" style="width: 80px;" onchange="updateRepo(${index}, 'arch', this.value)">
+                    <button class="btn" style="margin:0; background:var(--danger-color); padding: 8px 12px;" onclick="removeRepo(${index})">×</button>
+                `;
+                container.appendChild(row);
+
+                // Active Badge
+                const badge = document.createElement('span');
+                badge.style = "background: rgba(255,255,255,0.05); padding: 4px 10px; border-radius: 12px; font-size: 0.75rem; border: 1px solid rgba(255,255,255,0.1); color: var(--secondary-text);";
+                badge.innerText = `${item.repo} (${item.arch})`;
+                activeList.appendChild(badge);
+            });
+            if (currentTracking.length === 0) {
+                activeList.innerHTML = '<span style="color: var(--secondary-text); font-size: 0.8rem;">Нет отслеживаемых репозиториев</span>';
+            }
+        }
+
+        async function addRepoRow() {
+            const name = document.getElementById('new-repo-name').value;
+            const arch = document.getElementById('new-repo-arch').value;
+            if (name) {
+                currentTracking.push({repo: name, arch: arch || 'all'});
+                document.getElementById('new-repo-name').value = '';
+                renderRepos();
+                await saveConfig(true); // silent save
+            }
+        }
+
+        function updateRepo(index, key, value) {
+            currentTracking[index][key] = value;
+            saveConfig(true);
+        }
+
+        async function removeRepo(index) {
+            currentTracking.splice(index, 1);
+            renderRepos();
+            await saveConfig(true);
+        }
+
+        async function saveConfig(silent = false) {
+            const archInput = document.getElementById('cfg-arch');
+            const tokenInput = document.getElementById('cfg-token');
+            const intervalInput = document.getElementById('cfg-interval');
+            
+            const data = {
+                github_token: tokenInput ? tokenInput.value : '',
+                update_interval_hours: intervalInput ? parseInt(intervalInput.value) : 6,
+                packages_arch: archInput ? archInput.value.split(',').map(s => s.trim()).filter(s => s) : ['all'],
+                github_tracking: currentTracking
+            };
+            
+            try {
+                const response = await fetch('/api/config', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify(data)
+                });
+                if (response.ok && !silent) alert("Настройки сохранены!");
+            } catch (e) {
+                console.error("Save error:", e);
+                if (!silent) alert("Ошибка сохранения!");
+            }
+        }
+
+        async function loadStats() {
+            try {
+                const response = await fetch('/api/stats');
+                const stats = await response.json();
+                document.getElementById('stat-count').innerText = stats.packages_count;
+                document.getElementById('stat-size').innerText = stats.total_size;
+                document.getElementById('stat-update').innerText = stats.last_update;
+            } catch (e) {
+                console.error("Error loading stats:", e);
+            }
+        }
+
+        let allPackages = [];
+
+        function filterPackages() {
+            const query = document.getElementById('pkg-search').value.toLowerCase();
+            const filtered = allPackages.filter(p => p.name.toLowerCase().includes(query));
+            renderPackageList(filtered);
+        }
+
+        async function loadPackages() {
+            try {
+                const response = await fetch('/api/packages');
+                allPackages = await response.json();
+                renderPackageList(allPackages);
+            } catch (e) {
+                console.error("Error loading packages:", e);
+            }
+        }
+
+        function renderPackageList(packages) {
+            const list = document.getElementById('package-list');
+            list.innerHTML = '';
+            packages.forEach(pkg => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>
+                        <a href="${pkg.url}" target="_blank">${pkg.name}</a>
+                    </td>
+                    <td style="color: var(--secondary-text)">${pkg.size}</td>
+                    <td style="color: var(--secondary-text)">${pkg.mtime}</td>
+                `;
+                list.appendChild(row);
+            });
+        }
+
+        let logInterval = null;
+        async function pollLogs() {
+            try {
+                const response = await fetch('/api/logs');
+                const data = await response.json();
+                
+                // Обновляем лог в модальном окне
+                const modalBody = document.getElementById('modal-body');
+                if (modalBody) {
+                    modalBody.innerText = data.logs;
+                    modalBody.scrollTop = modalBody.scrollHeight;
+                }
+                
+                // Обновляем лог в постоянной секции
+                const persistentLogs = document.getElementById('persistent-logs');
+                if (persistentLogs) {
+                    persistentLogs.innerText = data.logs;
+                    persistentLogs.scrollTop = persistentLogs.scrollHeight;
+                }
+            } catch (e) {
+                console.error("Error polling logs:", e);
+            }
+        }
+
+        function loadLogs() { pollLogs(); }
+
+        function showModal(title, body) {
+            document.getElementById('modal-title').innerText = title;
+            document.getElementById('modal-body').innerText = body;
+            document.getElementById('modal').style.display = 'flex';
+        }
+
+        function closeModal() {
+            document.getElementById('modal').style.display = 'none';
+            if (logInterval) clearInterval(logInterval);
+        }
+
+        async function runUpdate() {
+            showModal("Обновление репозитория", "Запуск полного цикла обновления...");
+            try {
+                const response = await fetch('/api/update', {method: 'POST'});
+                if (logInterval) clearInterval(logInterval);
+                logInterval = setInterval(pollLogs, 2000);
+            } catch (e) {
+                console.error("Update error:", e);
+                showModal("Ошибка", "Не удалось запустить обновление.");
+            }
+        }
+
+        loadPackages();
+        loadStats();
+        loadConfig();
+        
+        // Постоянный опрос логов
+        pollLogs();
+        setInterval(pollLogs, 3000);
+    </script>
+</body>
+</html>
