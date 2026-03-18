@@ -14,9 +14,9 @@ data/*
 data/keys/*
 !data/keys/public.pem
 
-# Local Tools
-bin/
-!bin/.gitkeep
+# Local Tools (Allowed for Workflows)
+# bin/
+# !bin/.gitkeep
 
 # IDEs
 .vscode/

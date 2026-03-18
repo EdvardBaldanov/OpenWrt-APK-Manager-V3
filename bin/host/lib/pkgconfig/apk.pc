@@ -1,0 +1,10 @@
+prefix=/builder/shared-workdir/build/staging_dir/host
+includedir=${prefix}/include
+libdir=${prefix}/lib
+
+Name: apk
+Description: apk-tools: apk
+Version: 3.0.0
+Requires: openssl, zlib
+Libs: -L${libdir} -lapk
+Cflags: -I${includedir}
