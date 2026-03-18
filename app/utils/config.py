@@ -57,6 +57,20 @@ def get_packages_arch():
     filters = load_json(paths.FILTERS_JSON)
     return filters.get("packages_arch", ["all"])
 
+def ensure_default_configs():
+    """Создает файлы конфигурации с настройками по умолчанию, если они отсутствуют."""
+    defaults = {
+        paths.AUTH_JSON: {"github_token": ""},
+        paths.WEB_AUTH_JSON: {"admin": "admin"},
+        paths.REPOS_JSON: [],
+        paths.FILTERS_JSON: {"packages_arch": ["all"], "update_interval_hours": 12}
+    }
+    for path, data in defaults.items():
+        if not path.exists():
+            save_json(path, data)
+            logger.info(f"Создан конфигурационный файл по умолчанию: {path.name}")
+
 if __name__ == "__main__":
+    ensure_default_configs()
     print("Config Auth:", load_json(paths.AUTH_JSON))
     print("Tracking:", get_tracking_list())

@@ -12,6 +12,7 @@ def main():
     
     # Инициализация
     paths.ensure_folders()
+    config.ensure_default_configs()
     
     if args.sync:
         from app.services import sync
